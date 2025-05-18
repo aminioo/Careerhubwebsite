@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block body %}
+<style>
+    body {
+        background-color: #f0f8ff;  /* Light blue background */
+    }
+    .profile-header {
+        position: relative;
+        background: #1e88e5;  /* Blue background */
+        padding: 80px 0;  /* Increased padding */
+        margin-bottom: 40px;  /* Increased margin */
+        border-bottom: 1px solid #eee;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .profile-picture {
+        width: 180px;  /* Increased size */
+        height: 180px;  /* Increased size */
+        border-radius: 50%;
+        border: 5px solid #fff;
+        object-fit: cover;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .profile-info {
+        margin-top: 30px;  /* Increased margin */
+        padding: 0 50px;
+    }
+    .profile-name {
+        font-size: 32px;  /* Increased font size */
+        font-weight: bold;
+        margin-bottom: 10px;  /* Increased margin */
+        color: #fff;
+    }
+    .profile-bio {
+        color: #e3f2fd;
+        margin-bottom: 30px;  /* Increased margin */
+        font-size: 18px;  /* Increased font size */
+    }
+    .profile-tabs {
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 20px;
+    }
+    .profile-tabs a {
+        color: #666;
+        padding: 10px 20px;
+        text-decoration: none;
+    }
+    .profile-tabs a.active {
+        color: #1A1A1A;
+        border-bottom: 2px solid #1A1A1A;
+    }
+    .profile-content {
+        padding: 0 50px;
+    }
+    .card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: none;
+    }
+    .card-header {
+        background: #fff;
+        border-bottom: 1px solid #eee;
+        padding: 15px 20px;
+    }
+    .card-header h5 {
+        margin: 0;
+        color: #1A1A1A;
+    }
+    .card-body {
+        padding: 20px;
+    }
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #f0f8ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+    .activity-item {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+    .activity-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .activity-content {
+        flex: 1;
+    }
+    .boxed-btn3 {
+        background: #1A1A1A;
+        color: #fff;
+        padding: 10px 30px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .boxed-btn3:hover {
+        background: #333;
+        color: #fff;
+    }
+</style>
+
+<div class="profile-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-2">
+                {% if profile.image %}
+                    <img src="{{ profile.image.url }}" class="profile-picture" alt="Profile Picture">
+                {% else %}
+                    <img src="{% static 'img/default-profile.jpg' %}" class="profile-picture" alt="Default Profile">
+                {% endif %}
+            </div>
+            <div class="col-md-10">
+                <h1 class="profile-name">{{ profile.user.username }}</h1>
+                <p class="profile-bio">{{ profile.bio|default:"No bio yet" }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="profile-content">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>About</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li><strong>Email:</strong> {{ profile.user.email }}</li>
+                        <li><strong>Phone:</strong> {{ profile.phone_number|default:"Not provided" }}</li>
+                        <li><strong>Location:</strong> {{ profile.city|default:"Not provided" }}</li>
+                        <li><strong>User Type:</strong> {{ profile.user_type|title }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    {% if activities %}
+                        <div class="activity-list">
+                            {% for activity in activities %}
+                                <div class="activity-item mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="activity-icon mr-3">
+                                            {% if activity.activity_type == 'applied' %}
+                                                <i class="fa fa-paper-plane text-primary"></i>
+                                            {% elif activity.activity_type == 'posted' %}
+                                                <i class="fa fa-briefcase text-success"></i>
+                                            {% elif activity.activity_type == 'updated' %}
+                                                <i class="fa fa-user-edit text-info"></i>
+                                            {% elif activity.activity_type == 'saved' %}
+                                                <i class="fa fa-bookmark text-warning"></i>
+                                            {% elif activity.activity_type == 'viewed' %}
+                                                <i class="fa fa-eye text-secondary"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="activity-content">
+                                            <p class="mb-1">{{ activity.details }}</p>
+                                            {% if activity.job %}
+                                                <small class="text-muted">Job: <a href="{% url 'jobs:job_detail' activity.job.slug %}">{{ activity.job.title }}</a></small>
+                                            {% endif %}
+                                            <small class="d-block text-muted">{{ activity.created_at|timesince }} ago</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No recent activity</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="text-center mb-4">
+    <a href="{% url 'accounts:profile_edit' %}" class="boxed-btn3">Edit Profile</a>
+</div>
+{% endblock body %}
+
+
+
+
+
+ 

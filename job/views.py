@@ -1,0 +1,191 @@
+from django.shortcuts import redirect, render
+from .models import Job, Apply, SavedJob, Category
+from django.core.paginator import Paginator
+from .form import ApplyForm , JobForm
+from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from .filters import JobFilter
+from accounts.models import Profile, Activity
+from django.utils import timezone
+from django.contrib import messages
+
+# Create your views here.
+
+def job_list(request):
+    # Order jobs by is_featured (True first) and then by published_at (newest first)
+    job_list = Job.objects.all().order_by('-is_featured', '-published_at')
+
+    ## filters
+    myfilter = JobFilter(request.GET,queryset=job_list)
+    job_list = myfilter.qs
+
+    paginator = Paginator(job_list, 5) # Show 5 jobs per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {'jobs' :page_obj , 'myfilter' : myfilter} # template name
+    return render(request,'job/job_list.html',context)
+
+@login_required
+def job_detail(request, slug):
+    job_detail = Job.objects.get(slug=slug)
+
+    if request.method == 'POST':
+        form = ApplyForm(request.POST, request.FILES)
+        if form.is_valid():
+            myform = form.save(commit=False)
+            myform.job = job_detail
+            myform.applicant = request.user
+            myform.save()
+            
+            # Create activity record
+            try:
+                Activity.objects.create(
+                    user=request.user,
+                    activity_type='applied',
+                    job=job_detail,
+                    details=f'Applied for {job_detail.title} at {job_detail.company_name}'
+                )
+                messages.success(request, 'Application submitted successfully!')
+            except Exception as e:
+                messages.error(request, f'Error creating activity: {str(e)}')
+            
+            return redirect('/jobs/')  # Redirect to job list page instead
+
+    else:
+        form = ApplyForm()
+
+    context = {'job': job_detail, 'form1': form}
+    return render(request, 'job/job_detail.html', context)
+
+@login_required
+def company_dashboard(request):
+    # Check if user is a company
+    profile = Profile.objects.get(user=request.user)
+    if profile.user_type != 'company':
+        return redirect('/jobs/')
+    
+    # Get company's posted jobs
+    company_jobs = Job.objects.filter(owner=request.user)
+    
+    # Calculate statistics
+    active_jobs_count = company_jobs.filter(is_active=True).count()
+    total_applications = Apply.objects.filter(job__in=company_jobs).count()
+    new_applications = Apply.objects.filter(
+        job__in=company_jobs,
+        created_at__gte=timezone.now() - timezone.timedelta(days=7)
+    ).count()
+    
+    # Get recent applications
+    recent_applications = Apply.objects.filter(
+        job__in=company_jobs
+    ).order_by('-created_at')[:5]
+    
+    context = {
+        'jobs': company_jobs,
+        'profile': profile,
+        'active_jobs_count': active_jobs_count,
+        'total_applications': total_applications,
+        'new_applications': new_applications,
+        'recent_applications': recent_applications
+    }
+    return render(request, 'job/company_dashboard.html', context)
+
+@login_required
+def add_job(request):
+    # Check if user is a company
+    profile = Profile.objects.get(user=request.user)
+    if profile.user_type != 'company':
+        return redirect('jobs:job_list')
+    
+    if request.method=='POST':
+        form = JobForm(request.POST , request.FILES)
+        if form.is_valid():
+            myform = form.save(commit=False)
+            myform.owner = request.user
+            myform.company_name = request.user.username  # Use username as company name
+            myform.save()
+            form.save_m2m()  # Save many-to-many relationships
+            messages.success(request, 'Job posted successfully!')
+            return redirect('jobs:company_dashboard')
+    else:
+        form = JobForm(initial={'company_name': request.user.username})
+    
+    # Get all categories and print them for debugging
+    categories = Category.objects.all()
+    print("Available categories:", [c.name for c in categories])
+    
+    return render(request, 'job/add_job.html', {
+        'form': form,
+        'categories': categories
+    })
+
+@login_required
+def jobseeker_dashboard(request):
+    profile = Profile.objects.get(user=request.user)
+    if profile.user_type != 'jobseeker':
+        return redirect('/jobs/')
+    
+    # Get applied jobs
+    applied_jobs = Apply.objects.filter(applicant=request.user)
+    saved_jobs = SavedJob.objects.filter(user=request.user)
+    
+    context = {
+        'applied_jobs': applied_jobs,
+        'saved_jobs': saved_jobs,
+        'profile': profile
+    }
+    return render(request, 'job/jobseeker_dashboard.html', context)
+
+@login_required
+def apply_job(request, slug):
+    job = Job.objects.get(slug=slug)
+    if request.method == 'POST':
+        form = ApplyForm(request.POST, request.FILES)
+        if form.is_valid():
+            application = form.save(commit=False)
+            application.job = job
+            application.applicant = request.user
+            application.save()
+            
+            # Create activity record
+            try:
+                Activity.objects.create(
+                    user=request.user,
+                    activity_type='applied',
+                    job=job,
+                    details=f'Applied for {job.title} at {job.company_name}'
+                )
+                messages.success(request, 'Application submitted successfully!')
+            except Exception as e:
+                messages.error(request, f'Error creating activity: {str(e)}')
+            
+            return redirect('job:jobseeker_dashboard')
+    else:
+        form = ApplyForm()
+    
+    return render(request, 'job/apply_job.html', {'form': form, 'job': job})
+
+@login_required
+def edit_job(request, id):
+    # Get the job and verify ownership
+    job = Job.objects.get(id=id)
+    if job.owner != request.user:
+        messages.error(request, 'You do not have permission to edit this job.')
+        return redirect('job:job_list')
+    
+    if request.method == 'POST':
+        form = JobForm(request.POST, request.FILES, instance=job)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Job updated successfully!')
+            return redirect('job:job_detail', slug=job.slug)
+    else:
+        form = JobForm(instance=job)
+    
+    context = {
+        'form': form,
+        'job': job,
+        'categories': Job.objects.values_list('category', flat=True).distinct()
+    }
+    return render(request, 'job/edit_job.html', context)
