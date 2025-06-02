@@ -90,7 +90,8 @@ class Apply(models.Model):
         ('Pending', 'Pending'),
         ('Reviewed', 'Reviewed'),
         ('Shortlisted', 'Shortlisted'),
-        ('Rejected', 'Rejected')
+        ('Rejected', 'Rejected'),
+        ('accepted', 'accepted')
     ], default='Pending')
 
     def __str__(self):

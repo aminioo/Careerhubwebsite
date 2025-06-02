@@ -9,160 +9,221 @@
     .profile-header {
         position: relative;
         background: #1e88e5;  /* Blue background */
-        padding: 80px 0;  /* Increased padding */
-        margin-bottom: 40px;  /* Increased margin */
+        padding: 60px 0;  /* Adjusted padding */
+        margin-bottom: 30px;  /* Adjusted margin */
         border-bottom: 1px solid #eee;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15); /* Slightly stronger shadow */
+        color: #fff; /* Ensure text in header is white */
     }
     .profile-picture {
-        width: 180px;  /* Increased size */
-        height: 180px;  /* Increased size */
+        width: 150px;  /* Adjusted size */
+        height: 150px;  /* Adjusted size */
         border-radius: 50%;
-        border: 5px solid #fff;
+        border: 4px solid #fff; /* Adjusted border */
         object-fit: cover;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        box-shadow: 0 0 12px rgba(0,0,0,0.2); /* Adjusted shadow */
     }
     .profile-info {
-        margin-top: 30px;  /* Increased margin */
-        padding: 0 50px;
+        margin-top: 20px;  /* Adjusted margin */
+        padding: 0 30px; /* Adjusted padding */
     }
     .profile-name {
-        font-size: 32px;  /* Increased font size */
+        font-size: 28px;  /* Adjusted font size */
         font-weight: bold;
-        margin-bottom: 10px;  /* Increased margin */
-        color: #fff;
+        margin-bottom: 8px;  /* Adjusted margin */
+        color: #fff; /* Ensure name is white */
     }
     .profile-bio {
         color: #e3f2fd;
-        margin-bottom: 30px;  /* Increased margin */
-        font-size: 18px;  /* Increased font size */
+        margin-bottom: 25px;  /* Adjusted margin */
+        font-size: 16px;  /* Adjusted font size */
+        line-height: 1.5;
     }
-    .profile-tabs {
-        border-bottom: 1px solid #ddd;
-        margin-bottom: 20px;
+
+    /* Styling for integrated about info in the header */
+    .profile-header .about-info-list {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid rgba(255,255,255,0.3);
+        list-style: none; /* Remove default list styling */
+        padding-left: 0; /* Remove default padding */
     }
-    .profile-tabs a {
-        color: #666;
-        padding: 10px 20px;
-        text-decoration: none;
+    .profile-header .about-info-list li {
+        color: #e3f2fd; /* Light color for readability on dark background */
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
     }
-    .profile-tabs a.active {
-        color: #1A1A1A;
-        border-bottom: 2px solid #1A1A1A;
+     .profile-header .about-info-list li i {
+        margin-right: 10px;
+        color: #ffffff; /* White icon color */
+        width: 20px; /* Fixed width for icons */
     }
+    .profile-header .about-info-list li strong {
+        color: #ffffff; /* White color for labels */
+        margin-right: 5px;
+    }
+     .profile-header .boxed-btn3 {
+        margin-top: 20px; /* Space above the button */
+        display: inline-block; /* Ensure button doesn't stretch */
+        background-color: #28a745; /* Green background */
+        color: #ffffff; /* White text color */
+        border: 1px solid #28a745; /* Green border */
+        padding: 8px 25px; /* Adjusted padding */
+        border-radius: 4px; /* Slightly rounded corners */
+        transition: all 0.3s ease; /* Smooth transition for hover effect */
+    }
+     .profile-header .boxed-btn3:hover {
+        background-color: #218838; /* Darker green on hover */
+        color: #ffffff;
+        border-color: #218838;
+     }
+
     .profile-content {
-        padding: 0 50px;
+        padding: 0 15px; /* Adjusted padding for better mobile view */
     }
     .card {
         background: #fff;
-        border-radius: 10px;
+        border-radius: 8px; /* Slightly less rounded corners */
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         border: none;
+        margin-bottom: 20px; /* Added margin between cards */
     }
     .card-header {
-        background: #fff;
+        background: #f8f9fa; /* Light gray header background */
         border-bottom: 1px solid #eee;
         padding: 15px 20px;
-    }
-    .card-header h5 {
-        margin: 0;
-        color: #1A1A1A;
+        font-size: 18px;
+        font-weight: bold;
+        color: #333; /* Darker header text */
     }
     .card-body {
         padding: 20px;
     }
     .activity-icon {
-        width: 40px;
-        height: 40px;
+        width: 35px; /* Adjusted size */
+        height: 35px; /* Adjusted size */
         border-radius: 50%;
-        background-color: #f0f8ff;
+        background-color: #e3f2fd; /* Lighter background for icon */
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 16px; /* Adjusted icon size */
+        color: #1e88e5; /* Blue icon color */
     }
     .activity-item {
         border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
+        padding-bottom: 15px; /* Increased padding */
+        margin-bottom: 15px; /* Increased margin */
     }
     .activity-item:last-child {
         border-bottom: none;
         padding-bottom: 0;
+        margin-bottom: 0;
     }
     .activity-content {
         flex: 1;
     }
-    .boxed-btn3 {
-        background: #1A1A1A;
-        color: #fff;
-        padding: 10px 30px;
-        border-radius: 5px;
-        text-decoration: none;
-        transition: all 0.3s;
+    .activity-content p {
+        margin-bottom: 4px; /* Adjusted margin */
     }
-    .boxed-btn3:hover {
-        background: #333;
-        color: #fff;
-    }
+     .activity-content small {
+        display: block;
+        color: #777; /* Darker muted text */
+     }
+
+     /* Add some icons to about info list */
+    .about-info-list li:nth-child(1) i { content: '\f0e0'; } /* Envelope for Email */
+    .about-info-list li:nth-child(2) i { content: '\f095'; } /* Phone for Phone */
+    .about-info-list li:nth-child(3) i { content: '\f041'; } /* Map Marker for Location */
+    .about-info-list li:nth-child(4) i { content: '\f007'; } /* User for User Type */
+
 </style>
 
 <div class="profile-header">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-md-2">
+            <div class="col-md-2 text-center text-md-left"> {# Center profile picture on small screens #}
                 {% if profile.image %}
                     <img src="{{ profile.image.url }}" class="profile-picture" alt="Profile Picture">
                 {% else %}
                     <img src="{% static 'img/default-profile.jpg' %}" class="profile-picture" alt="Default Profile">
                 {% endif %}
             </div>
-            <div class="col-md-10">
+            <div class="col-md-10 mt-3 mt-md-0"> {# Add top margin on small screens #}
                 <h1 class="profile-name">{{ profile.user.username }}</h1>
                 <p class="profile-bio">{{ profile.bio|default:"No bio yet" }}</p>
+
+                <!-- About Information integrated into the header -->
+                <ul class="list-unstyled about-info-list">
+                     <li><i class="fa fa-envelope"></i><strong>Email:</strong> {{ profile.user.email }}</li>
+                    <li><i class="fa fa-phone"></i><strong>Phone:</strong> {{ profile.phone_number|default:"Not provided" }}</li>
+                    <li><i class="fa fa-map-marker"></i><strong>Location:</strong> {{ profile.city|default:"Not provided" }}</li>
+                    <li><i class="fa fa-user"></i><strong>User Type:</strong> {{ profile.user_type|title }}</li>
+                </ul>
+                <a href="{% url 'accounts:profile_edit' %}" class="boxed-btn3">Edit Profile</a>
             </div>
         </div>
     </div>
 </div>
 
-<div class="profile-content">
+<div class="profile-content container"> {# Wrap content in a container #}
     <div class="row">
+
+        {# Commented out placeholder for other sections #}
+        {% comment %}
         <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5>About</h5>
-                </div>
-                <div class="card-body">
-                    <ul class="list-unstyled">
-                        <li><strong>Email:</strong> {{ profile.user.email }}</li>
-                        <li><strong>Phone:</strong> {{ profile.phone_number|default:"Not provided" }}</li>
-                        <li><strong>Location:</strong> {{ profile.city|default:"Not provided" }}</li>
-                        <li><strong>User Type:</strong> {{ profile.user_type|title }}</li>
-                    </ul>
-                </div>
-            </div>
+             <div class="card mb-4">
+                 <div class="card-header">
+                     <h5>Skills</h5>
+                 </div>
+                 <div class="card-body">
+                     <p>Skills content goes here...</p>
+                 </div>
+             </div>
+
+             <div class="card mb-4">
+                 <div class="card-header">
+                     <h5>Education</h5>
+                 </div>
+                 <div class="card-body">
+                     <p>Education content goes here...</p>
+                 </div>
+             </div>
+
+              <div class="card mb-4">
+                 <div class="card-header">
+                     <h5>Work Experience</h5>
+                 </div>
+                 <div class="card-body">
+                     <p>Work Experience content goes here...</p>
+                 </div>
+             </div>
         </div>
-        <div class="col-md-6">
+        {% endcomment %}
+
+        <div class="col-md-6 offset-md-6"> {# Offset to align with right side, adjust if adding left column content #}
             <div class="card">
                 <div class="card-header">
                     <h5>Recent Activity</h5>
                 </div>
                 <div class="card-body">
-                    {% if activities %}
+                    {% if activity %}
                         <div class="activity-list">
-                            {% for activity in activities %}
-                                <div class="activity-item mb-3">
+                            {% for activity in activity %}
+                                <div class="activity-item">
                                     <div class="d-flex align-items-center">
                                         <div class="activity-icon mr-3">
                                             {% if activity.activity_type == 'applied' %}
-                                                <i class="fa fa-paper-plane text-primary"></i>
+                                                <i class="fa fa-paper-plane"></i> {# Added fa class #}
                                             {% elif activity.activity_type == 'posted' %}
-                                                <i class="fa fa-briefcase text-success"></i>
+                                                <i class="fa fa-briefcase"></i> {# Added fa class #}
                                             {% elif activity.activity_type == 'updated' %}
-                                                <i class="fa fa-user-edit text-info"></i>
+                                                <i class="fa fa-user-edit"></i> {# Added fa class #}
                                             {% elif activity.activity_type == 'saved' %}
-                                                <i class="fa fa-bookmark text-warning"></i>
+                                                <i class="fa fa-bookmark"></i> {# Added fa class #}
                                             {% elif activity.activity_type == 'viewed' %}
-                                                <i class="fa fa-eye text-secondary"></i>
+                                                <i class="fa fa-eye"></i> {# Added fa class #}
                                             {% endif %}
                                         </div>
                                         <div class="activity-content">
@@ -185,9 +246,12 @@
     </div>
 </div>
 
+{# Removed redundant Edit Profile button #}
+{% comment %}
 <div class="text-center mb-4">
     <a href="{% url 'accounts:profile_edit' %}" class="boxed-btn3">Edit Profile</a>
 </div>
+{% endcomment %}
 {% endblock body %}
 
 

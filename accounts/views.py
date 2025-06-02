@@ -33,19 +33,20 @@ def signup(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            username = form.cleaned_data['username']
-            email = form.cleaned_data['email']
-            password = form.cleaned_data['password']
+            # Create user using form.save()
+            user = form.save()
             user_type = form.cleaned_data['user_type']
-            
-            # Create user
-            user = User.objects.create_user(username=username, email=email, password=password)
-            
-            # Create profile
-            Profile.objects.create(user=user, user_type=user_type)
-            
+
+            # Create profile for the new user
+            # Check if a profile already exists (in case of a signal)
+            profile, created = Profile.objects.get_or_create(user=user, defaults={'user_type': user_type})
+            if not created:
+                 # If profile already existed, ensure user_type is set
+                 profile.user_type = user_type
+                 profile.save()
+
             # Log the user in
-            user = authenticate(username=username, password=password)
+            user = authenticate(request, username=user.username, password=form.cleaned_data['password1'])
             login(request, user)
             
             # Redirect based on user type
@@ -62,6 +63,8 @@ def signup(request):
 def profile(request):
     profile = Profile.objects.get(user=request.user)
     activity = Activity.objects.filter(user=request.user)
+    
+
     if request.method == 'POST':
         user_form = UserForm(request.POST, instance=request.user)
         profile_form = ProfileForm(request.POST, request.FILES, instance=profile)
@@ -74,12 +77,15 @@ def profile(request):
     else:
         user_form = UserForm(instance=request.user)
         profile_form = ProfileForm(instance=profile)
+
+    
     
     return render(request, 'accounts/profile.html', {
         'user_form': user_form,
         'profile_form': profile_form,
         'profile': profile,
-        'activity': activity
+        'activity': activity,
+        
     })
 
 def profile_edit(request):

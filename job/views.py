@@ -133,7 +133,8 @@ def jobseeker_dashboard(request):
     context = {
         'applied_jobs': applied_jobs,
         'saved_jobs': saved_jobs,
-        'profile': profile
+        'profile': profile,
+        
     }
     return render(request, 'job/jobseeker_dashboard.html', context)
 
@@ -147,6 +148,7 @@ def apply_job(request, slug):
             application.job = job
             application.applicant = request.user
             application.save()
+            
             
             # Create activity record
             try:
