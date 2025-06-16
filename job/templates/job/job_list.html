@@ -24,8 +24,20 @@
                         <div class="form_inner white-bg">
                             <h3>Filter</h3>
                             <form method="GET">
-                                {% bootstrap_form myfilter.form %}
-                    
+                                {% for field in myfilter.form %}
+                                    <div class="form-group">
+                                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                        {% if field.field.widget.input_type == 'select' %}
+                                            <select name="{{ field.name }}" id="{{ field.id_for_label }}" class="nice-select form-control">
+                                                {% for choice in field.field.choices %}
+                                                    <option value="{{ choice.0 }}" {% if choice.0 == field.value %}selected{% endif %}>{{ choice.1 }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        {% else %}
+                                            {{ field }}
+                                        {% endif %}
+                                    </div>
+                                {% endfor %}
                                 <input type="submit" value="Search" class="boxed-btn3 w-100 mt-2">
                             </form>
                         </div>

@@ -4,16 +4,16 @@
 {% block body %}
 <!-- slider_area_start -->
 <div class="slider_area">
-    <div class="single_slider  d-flex align-items-center slider_bg_1">
+    <div class="single_slider d-flex align-items-center slider_bg_1 overlay">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-7 col-md-6">
                     <div class="slider_text">
-                        <h5 class="wow fadeInLeft" data-wow-duration="1s" data-wow-delay=".2s">4536+ Jobs listed</h5>
-                        <h3 class="wow fadeInLeft" data-wow-duration="1s" data-wow-delay=".3s">Find your Dream Job</h3>
-                        <p class="wow fadeInLeft" data-wow-duration="1s" data-wow-delay=".4s">We provide online instant cash loans with quick approval that suit your term length</p>
+                        <h5 class="wow fadeInLeft" data-wow-duration="1s" data-wow-delay=".2s">Connecting Talent with Opportunity</h5>
+                        <h3 class="wow fadeInLeft" data-wow-duration="1s" data-wow-delay=".3s">Your Dream Job Awaits</h3>
+                        <p class="wow fadeInLeft" data-wow-duration="1s" data-wow-delay=".4s">Explore thousands of job listings from top companies and find the perfect match for your skills and career aspirations.</p>
                         <div class="sldier_btn wow fadeInLeft" data-wow-duration="1s" data-wow-delay=".5s">
-                            <a href="{% url 'jobs:job_list' %}" class="boxed-btn3">Browse Jobs</a>
+                            <a href="{% url 'jobs:job_list' %}" class="boxed-btn3">Browse All Jobs</a>
                         </div>
                     </div>
                 </div>
@@ -29,15 +29,15 @@
 <!-- catagory_area -->
 <div class="catagory_area">
     <div class="container">
-        <div class="row cat_search">
-            <div class="col-lg-3 col-md-4">
+        <div class="row cat_search align-items-end">
+            <div class="col-lg-3 col-md-4 mb-3">
                 <div class="single_input">
-                    <input type="text" placeholder="Search keyword">
+                    <input type="text" placeholder="Search keyword" class="form-control">
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4">
+            <div class="col-lg-3 col-md-4 mb-3">
                 <div class="single_input">
-                    <select class="wide">
+                    <select class="wide form-control">
                         <option data-display="Location">Location</option>
                         <option value="1">Dhaka</option>
                         <option value="2">Rangpur</option>
@@ -45,9 +45,9 @@
                     </select>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4">
+            <div class="col-lg-3 col-md-4 mb-3">
                 <div class="single_input">
-                    <select class="wide">
+                    <select class="wide form-control">
                         <option data-display="Category">Category</option>
                         <option value="1">Category 1</option>
                         <option value="2">Category 2</option>
@@ -55,9 +55,9 @@
                     </select>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-12">
+            <div class="col-lg-3 col-md-12 mb-3">
                 <div class="job_btn">
-                    <a href="{% url 'jobs:job_list' %}" class="boxed-btn3">Find Job</a>
+                    <a href="{% url 'jobs:job_list' %}" class="boxed-btn3 w-100">Find Job</a>
                 </div>
             </div>
         </div>
