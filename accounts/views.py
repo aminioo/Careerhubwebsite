@@ -2,7 +2,7 @@ from django.shortcuts import redirect, render
 from .forms import SignupForm , UserForm , ProfileForm
 from django.contrib.auth import authenticate, login
 from .models import Profile, Activity
-from job.models import Apply
+from job.models import Apply, SavedJob
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -64,6 +64,10 @@ def profile(request):
     profile = Profile.objects.get(user=request.user)
     activity = Activity.objects.filter(user=request.user)
     
+    # Get saved jobs for job seekers
+    saved_jobs = []
+    if profile.user_type == 'job_seeker':
+        saved_jobs = SavedJob.objects.filter(user=request.user).select_related('job')
 
     if request.method == 'POST':
         user_form = UserForm(request.POST, instance=request.user)
@@ -85,7 +89,7 @@ def profile(request):
         'profile_form': profile_form,
         'profile': profile,
         'activity': activity,
-        
+        'saved_jobs': saved_jobs,
     })
 
 def profile_edit(request):

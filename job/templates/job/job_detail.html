@@ -46,7 +46,15 @@
                             </div>
                             <div class="jobs_right">
                                 <div class="apply_now">
-                                    <a class="heart_mark" href="#"> <i class="ti-heart"></i> </a>
+                                    {% if user.is_authenticated %}
+                                        <a class="heart_mark wishlist-btn" href="#" data-job-id="{{ job.id }}" data-csrf-token="{{ csrf_token }}">
+                                            <i class="ti-heart {% if job.id in user_saved_jobs %}text-danger{% endif %}"></i>
+                                        </a>
+                                    {% else %}
+                                        <a class="heart_mark" href="{% url 'accounts:login' %}">
+                                            <i class="ti-heart"></i>
+                                        </a>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -56,6 +64,18 @@
                             <h4>Job description</h4>
                             <p>{{job.description}}</p>
                         </div>
+                        {% if job.requirements %}
+                        <div class="single_wrap">
+                            <h4><i class="fa fa-check-circle" style="color: #28a745; margin-right: 10px;"></i>Job Requirements</h4>
+                            <p>{{job.requirements|linebreaks}}</p>
+                        </div>
+                        {% endif %}
+                        {% if job.responsibilities %}
+                        <div class="single_wrap">
+                            <h4><i class="fa fa-tasks" style="color: #007bff; margin-right: 10px;"></i>Job Responsibilities</h4>
+                            <p>{{job.responsibilities|linebreaks}}</p>
+                        </div>
+                        {% endif %}
                     </div>
                     {% if user.is_authenticated and user.profile.user_type != 'company' %}
                     <div class="apply_job_form white-bg">
@@ -87,6 +107,12 @@
                                 <li>Salary: <span>{{job.salary}} $</span></li>
                                 <li>Location: <span>{{job.location}}</span></li>
                                 <li>Job Nature: <span>{{job.job_type}}</span></li>
+                                {% if job.experience_min or job.experience_max %}
+                                <li>Experience: <span>{% if job.experience_min and job.experience_max %}{{job.experience_min}}-{{job.experience_max}} years{% elif job.experience_min %}{{job.experience_min}}+ years{% elif job.experience_max %}{{job.experience_max}} years max{% endif %}</span></li>
+                                {% endif %}
+                                {% if job.job_level %}
+                                <li>Level: <span>{{job.job_level}}</span></li>
+                                {% endif %}
                             </ul>
                         </div>
                     </div>
@@ -133,6 +159,43 @@
     </div>
 
     {% endblock body %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle wishlist button clicks
+            document.querySelectorAll('.wishlist-btn').forEach(function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const jobId = this.getAttribute('data-job-id');
+                    const csrfToken = this.getAttribute('data-csrf-token');
+                    const heartIcon = this.querySelector('i');
+                    
+                    fetch(`/jobs/wishlist/toggle/${jobId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Toggle the heart icon appearance
+                            if (heartIcon.classList.contains('text-danger')) {
+                                heartIcon.classList.remove('text-danger');
+                            } else {
+                                heartIcon.classList.add('text-danger');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                });
+            });
+        });
+    </script>
 
 
 

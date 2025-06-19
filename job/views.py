@@ -8,6 +8,8 @@ from .filters import JobFilter
 from accounts.models import Profile, Activity
 from django.utils import timezone
 from django.contrib import messages
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 # Create your views here.
 
@@ -22,13 +24,31 @@ def job_list(request):
     paginator = Paginator(job_list, 5) # Show 5 jobs per page
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    # Get unique job locations for the filter dropdown
+    locations = Job.objects.values_list('location', flat=True).distinct().order_by('location')
 
-    context = {'jobs' :page_obj , 'myfilter' : myfilter} # template name
+    # Get saved jobs for authenticated users
+    user_saved_jobs = []
+    if request.user.is_authenticated:
+        user_saved_jobs = SavedJob.objects.filter(user=request.user).values_list('job_id', flat=True)
+
+    context = {
+        'jobs': page_obj, 
+        'myfilter': myfilter, 
+        'locations': locations,
+        'user_saved_jobs': user_saved_jobs
+    }
     return render(request,'job/job_list.html',context)
 
 @login_required
 def job_detail(request, slug):
     job_detail = Job.objects.get(slug=slug)
+
+    # Check if job is saved by current user
+    is_saved = False
+    if request.user.is_authenticated:
+        is_saved = SavedJob.objects.filter(user=request.user, job=job_detail).exists()
 
     if request.method == 'POST':
         form = ApplyForm(request.POST, request.FILES)
@@ -55,7 +75,12 @@ def job_detail(request, slug):
     else:
         form = ApplyForm()
 
-    context = {'job': job_detail, 'form1': form}
+    context = {
+        'job': job_detail, 
+        'form1': form,
+        'is_saved': is_saved,
+        'user_saved_jobs': [job_detail.id] if is_saved else []
+    }
     return render(request, 'job/job_detail.html', context)
 
 @login_required
@@ -121,54 +146,6 @@ def add_job(request):
     })
 
 @login_required
-def jobseeker_dashboard(request):
-    profile = Profile.objects.get(user=request.user)
-    if profile.user_type != 'jobseeker':
-        return redirect('/jobs/')
-    
-    # Get applied jobs
-    applied_jobs = Apply.objects.filter(applicant=request.user)
-    saved_jobs = SavedJob.objects.filter(user=request.user)
-    
-    context = {
-        'applied_jobs': applied_jobs,
-        'saved_jobs': saved_jobs,
-        'profile': profile,
-        
-    }
-    return render(request, 'job/jobseeker_dashboard.html', context)
-
-@login_required
-def apply_job(request, slug):
-    job = Job.objects.get(slug=slug)
-    if request.method == 'POST':
-        form = ApplyForm(request.POST, request.FILES)
-        if form.is_valid():
-            application = form.save(commit=False)
-            application.job = job
-            application.applicant = request.user
-            application.save()
-            
-            
-            # Create activity record
-            try:
-                Activity.objects.create(
-                    user=request.user,
-                    activity_type='applied',
-                    job=job,
-                    details=f'Applied for {job.title} at {job.company_name}'
-                )
-                messages.success(request, 'Application submitted successfully!')
-            except Exception as e:
-                messages.error(request, f'Error creating activity: {str(e)}')
-            
-            return redirect('job:jobseeker_dashboard')
-    else:
-        form = ApplyForm()
-    
-    return render(request, 'job/apply_job.html', {'form': form, 'job': job})
-
-@login_required
 def edit_job(request, id):
     # Get the job and verify ownership
     job = Job.objects.get(id=id)
@@ -191,3 +168,17 @@ def edit_job(request, id):
         'categories': Job.objects.values_list('category', flat=True).distinct()
     }
     return render(request, 'job/edit_job.html', context)
+
+@require_POST
+@login_required
+def toggle_wishlist(request, job_id):
+    job = Job.objects.get(id=job_id)
+    saved_job, created = SavedJob.objects.get_or_create(user=request.user, job=job)
+    
+    if created:
+        messages.success(request, f'{job.title} added to your wishlist!')
+    else:
+        saved_job.delete()
+        messages.success(request, f'{job.title} removed from your wishlist.')
+    
+    return JsonResponse({'status': 'success'})

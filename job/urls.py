@@ -12,6 +12,7 @@ urlpatterns = [
     path('edit/<int:id>',views.edit_job , name='edit_job'),
     path('<str:slug>',views.job_detail , name='job_detail'),
     path('company/dashboard/', views.company_dashboard, name='company_dashboard'),
+    path('wishlist/toggle/<int:job_id>/', views.toggle_wishlist, name='toggle_wishlist'),
 
     ## api
     path('api/jobs',api.job_list_api , name='job_list_api'),
