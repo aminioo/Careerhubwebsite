@@ -169,10 +169,36 @@
 
 <div class="profile-content container"> {# Wrap content in a container #}
     <div class="row">
-
-        {# Wishlist Section for Job Seekers #}
-        {% if profile.user_type == 'job_seeker' %}
         <div class="col-md-6">
+            <!-- Notifications Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fa fa-bell text-warning"></i> Notifications</h5>
+                </div>
+                <div class="card-body">
+                    {% if notifications %}
+                        <ul class="list-unstyled">
+                            {% for notification in notifications %}
+                                <li class="mb-3 {% if not notification.is_read %}font-weight-bold{% endif %} notification-item" data-notification-id="{{ notification.id }}">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="notification-content flex-grow-1">
+                                            {{ notification.message|linebreaks }}
+                                            <small class="text-muted">{{ notification.created_at|date:'M d, Y H:i' }}</small>
+                                        </div>
+                                        <button class="btn btn-sm btn-outline-danger delete-notification-btn ml-2" data-notification-id="{{ notification.id }}">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">No notifications.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Wishlist Section for Job Seekers -->
+            {% if profile.user_type == 'job_seeker' %}
             <div class="card mb-4">
                 <div class="card-header">
                     <h5><i class="fa fa-heart text-danger"></i> My Wishlist ({{ saved_jobs.count }} jobs)</h5>
@@ -227,72 +253,50 @@
                     {% endif %}
                 </div>
             </div>
+            {% endif %}
         </div>
-        {% endif %}
-
-        {# Commented out placeholder for other sections #}
-        {% comment %}
         <div class="col-md-6">
-             <div class="card mb-4">
-                 <div class="card-header">
-                     <h5>Skills</h5>
-                 </div>
-                 <div class="card-body">
-                     <p>Skills content goes here...</p>
-                 </div>
-             </div>
-
-             <div class="card mb-4">
-                 <div class="card-header">
-                     <h5>Education</h5>
-                 </div>
-                 <div class="card-body">
-                     <p>Education content goes here...</p>
-                 </div>
-             </div>
-
-              <div class="card mb-4">
-                 <div class="card-header">
-                     <h5>Work Experience</h5>
-                 </div>
-                 <div class="card-body">
-                     <p>Work Experience content goes here...</p>
-                 </div>
-             </div>
-        </div>
-        {% endcomment %}
-
-        <div class="col-md-6 {% if profile.user_type == 'job_seeker' %}{% else %}offset-md-6{% endif %}"> {# Adjust offset based on whether wishlist is shown #}
+            <!-- Recent Activity Section -->
             <div class="card">
-                <div class="card-header">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5>Recent Activity</h5>
+                    {% if activity %}
+                        <button class="btn btn-sm btn-outline-danger clear-activities-btn">
+                            <i class="fa fa-trash"></i> Clear All
+                        </button>
+                    {% endif %}
                 </div>
                 <div class="card-body">
                     {% if activity %}
                         <div class="activity-list">
                             {% for activity in activity %}
-                                <div class="activity-item">
+                                <div class="activity-item" data-activity-id="{{ activity.id }}">
                                     <div class="d-flex align-items-center">
                                         <div class="activity-icon mr-3">
                                             {% if activity.activity_type == 'applied' %}
-                                                <i class="fa fa-paper-plane"></i> {# Added fa class #}
+                                                <i class="fa fa-paper-plane"></i>
                                             {% elif activity.activity_type == 'posted' %}
-                                                <i class="fa fa-briefcase"></i> {# Added fa class #}
+                                                <i class="fa fa-briefcase"></i>
                                             {% elif activity.activity_type == 'updated' %}
-                                                <i class="fa fa-user-edit"></i> {# Added fa class #}
+                                                <i class="fa fa-user-edit"></i>
                                             {% elif activity.activity_type == 'saved' %}
-                                                <i class="fa fa-bookmark"></i> {# Added fa class #}
+                                                <i class="fa fa-bookmark"></i>
                                             {% elif activity.activity_type == 'viewed' %}
-                                                <i class="fa fa-eye"></i> {# Added fa class #}
+                                                <i class="fa fa-eye"></i>
                                             {% endif %}
                                         </div>
-                                        <div class="activity-content">
+                                        <div class="activity-content flex-grow-1">
                                             <p class="mb-1">{{ activity.details }}</p>
                                             {% if activity.job %}
                                                 <small class="text-muted">Job: <a href="{% url 'job:job_detail' activity.job.slug %}">{{ activity.job.title }}</a></small>
+                                            {% else %}
+                                                <small class="text-muted text-danger">Job: <em>This job has been removed</em></small>
                                             {% endif %}
                                             <small class="d-block text-muted">{{ activity.created_at|timesince }} ago</small>
                                         </div>
+                                        <button class="btn btn-sm btn-outline-danger delete-activity-btn ml-2" data-activity-id="{{ activity.id }}">
+                                            <i class="fa fa-times"></i>
+                                        </button>
                                     </div>
                                 </div>
                             {% endfor %}
@@ -361,6 +365,122 @@
                 .catch(error => {
                     console.error('Error:', error);
                 });
+            });
+        });
+
+        // Handle delete notification button clicks
+        document.querySelectorAll('.delete-notification-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const notificationId = this.getAttribute('data-notification-id');
+                const notificationItem = this.closest('.notification-item');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                if (confirm('Are you sure you want to delete this notification?')) {
+                    fetch(`/jobs/delete-notification/${notificationId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Remove the notification item from the DOM
+                            notificationItem.remove();
+                            
+                            // Check if there are any notifications left
+                            const remainingNotifications = document.querySelectorAll('.notification-item');
+                            if (remainingNotifications.length === 0) {
+                                const notificationsList = document.querySelector('.card-body ul');
+                                if (notificationsList) {
+                                    notificationsList.innerHTML = '<p class="text-muted">No notifications.</p>';
+                                }
+                            }
+                        } else {
+                            alert('Error deleting notification.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error deleting notification.');
+                    });
+                }
+            });
+        });
+
+        // Handle clear all activities button
+        document.querySelector('.clear-activities-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (confirm('Are you sure you want to clear all activities?')) {
+                fetch('/jobs/clear-activities/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Remove all activity items from the DOM
+                        const activityList = document.querySelector('.activity-list');
+                        if (activityList) {
+                            activityList.innerHTML = '<p class="text-muted">No recent activity</p>';
+                        }
+                    } else {
+                        alert('Error clearing activities.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error clearing activities.');
+                });
+            }
+        });
+
+        // Handle delete activity button clicks
+        document.querySelectorAll('.delete-activity-btn').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const activityId = this.getAttribute('data-activity-id');
+                const activityItem = this.closest('.activity-item');
+                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                if (confirm('Are you sure you want to delete this activity?')) {
+                    fetch(`/jobs/delete-activity/${activityId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Remove the activity item from the DOM
+                            activityItem.remove();
+                            
+                            // Check if there are any activities left
+                            const remainingActivities = document.querySelectorAll('.activity-item');
+                            if (remainingActivities.length === 0) {
+                                const activityList = document.querySelector('.activity-list');
+                                if (activityList) {
+                                    activityList.innerHTML = '<p class="text-muted">No recent activity</p>';
+                                }
+                            }
+                        } else {
+                            alert('Error deleting activity.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error deleting activity.');
+                    });
+                }
             });
         });
     });

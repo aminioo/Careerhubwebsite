@@ -2,6 +2,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
+from rapidfuzz import process
 
 FAQS = [
     ("hello", "Hello! How can I help you today?"),
@@ -36,6 +37,10 @@ FAQS = [
     ("how to post a job", "If you are an employer, go to your <a href='/job/company/dashboard/' class='chatbot-link'>dashboard</a> and click 'Post a Job'."),
     ("how do I delete my account", "Please <a href='/contact/' class='chatbot-link'>contact support</a> to request account deletion."),
     ("bye", "Goodbye! If you have more questions, just ask."),
+    ("view my profile", "Go to your <a href='/accounts/profile/' class='chatbot-link'>profile page</a> to view your information."),
+    ("profile page", "Go to your <a href='/accounts/profile/' class='chatbot-link'>profile page</a> to view your information."),
+    ("show my profile", "Go to your <a href='/accounts/profile/' class='chatbot-link'>profile page</a> to view your information."),
+    ("see my profile", "Go to your <a href='/accounts/profile/' class='chatbot-link'>profile page</a> to view your information."),
 ]
 
 @csrf_exempt
@@ -43,7 +48,32 @@ FAQS = [
 def chatbot_ask(request):
     data = json.loads(request.body.decode('utf-8'))
     user_message = data.get('message', '').lower()
-    for keyword, answer in FAQS:
-        if keyword.lower() in user_message:
-            return JsonResponse({'reply': answer})
+
+    # Keyword filtering for key pages/actions
+    if 'profile' in user_message:
+        return JsonResponse({'reply': "Go to your <a href='/accounts/profile/' class='chatbot-link'>profile page</a> to view your information."})
+    if 'job' in user_message and ('list' in user_message or 'browse' in user_message):
+        return JsonResponse({'reply': "Browse all jobs on the <a href='/jobs/' class='chatbot-link'>job listings page</a>."})
+    if 'saved' in user_message or 'wishlist' in user_message:
+        return JsonResponse({'reply': "See your saved jobs on your <a href='/accounts/profile/' class='chatbot-link'>profile page</a>."})
+    if 'contact' in user_message or 'support' in user_message:
+        return JsonResponse({'reply': "You can contact us using the <a href='/contact/' class='chatbot-link'>contact form</a>."})
+    if 'home' in user_message or 'main page' in user_message:
+        return JsonResponse({'reply': "Return to the <a href='/' class='chatbot-link'>home page</a>."})
+    if 'login' in user_message or 'sign in' in user_message:
+        return JsonResponse({'reply': "You can <a href='/accounts/login/' class='chatbot-link'>sign in here</a>."})
+    if 'logout' in user_message or 'sign out' in user_message:
+        return JsonResponse({'reply': "You can <a href='/accounts/logout/' class='chatbot-link'>sign out here</a>."})
+    if 'register' in user_message or 'sign up' in user_message:
+        return JsonResponse({'reply': "You can <a href='/accounts/signup/' class='chatbot-link'>register here</a>."})
+    if 'post' in user_message and 'job' in user_message:
+        return JsonResponse({'reply': "To post a job, go to <a href='/jobs/add' class='chatbot-link'>add a job</a>."})
+    if 'edit' in user_message and 'profile' in user_message:
+        return JsonResponse({'reply': "Edit your profile on your <a href='/accounts/profile/' class='chatbot-link'>profile page</a>."})
+
+    # Fuzzy matching fallback
+    questions = [q for q, a in FAQS]
+    match, score, idx = process.extractOne(user_message, questions)
+    if score > 70:
+        return JsonResponse({'reply': FAQS[idx][1]})
     return JsonResponse({'reply': "I'm not sure about that. Please try rephrasing your question or <a href='/contact/' class='chatbot-link'>contact support</a>!"}) 

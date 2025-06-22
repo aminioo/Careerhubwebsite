@@ -1,4 +1,4 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, get_object_or_404
 from .models import Job, Apply, SavedJob, Category
 from django.core.paginator import Paginator
 from .form import ApplyForm , JobForm
@@ -10,6 +10,8 @@ from django.utils import timezone
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from .forms import SetInterviewForm
+from .models import Interview, Notification
 
 # Create your views here.
 
@@ -182,3 +184,52 @@ def toggle_wishlist(request, job_id):
         messages.success(request, f'{job.title} removed from your wishlist.')
     
     return JsonResponse({'status': 'success'})
+
+@login_required
+def set_interview(request, application_id):
+    application = get_object_or_404(Apply, id=application_id)
+    if request.method == 'POST':
+        form = SetInterviewForm(request.POST)
+        if form.is_valid():
+            interview = form.save(commit=False)
+            interview.application = application
+            interview.save()
+            # Send notification to applicant
+            notes_text = f" Notes: {interview.notes}" if interview.notes else ""
+            Notification.objects.create(
+                user=application.applicant,
+                message=f"🎯 Interview Scheduled!\n\n📋 Job: {application.job.title}\n📅 Date: {interview.date}\n⏰ Time: {interview.time}\n📍 Location: {interview.location}{notes_text}"
+            )
+            return JsonResponse({'status': 'success'})
+        else:
+            return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+@require_POST
+@login_required
+def delete_notification(request, notification_id):
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+        notification.delete()
+        return JsonResponse({'status': 'success'})
+    except Notification.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Notification not found'}, status=404)
+
+@require_POST
+@login_required
+def delete_activity(request, activity_id):
+    try:
+        activity = Activity.objects.get(id=activity_id, user=request.user)
+        activity.delete()
+        return JsonResponse({'status': 'success'})
+    except Activity.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Activity not found'}, status=404)
+
+@require_POST
+@login_required
+def clear_activities(request):
+    try:
+        Activity.objects.filter(user=request.user).delete()
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)

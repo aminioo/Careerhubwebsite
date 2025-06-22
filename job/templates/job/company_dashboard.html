@@ -361,19 +361,17 @@
                                         <p class="mb-1">{{ application.name }}</p>
                                         <small class="text-muted">Applied {{ application.created_at|timesince }} ago</small>
                                         <div class="mt-2">
-                                            <button type="button" 
-                                                    class="btn btn-sm btn-primary view-application" 
-                                                    data-toggle="modal" 
-                                                    data-target="#applicationModal"
-                                                    data-name="{{ application.name }}"
-                                                    data-email="{{ application.email }}"
-                                                    data-website="{{ application.website|default:'' }}"
-                                                    data-status="{{ application.status }}"
-                                                    data-applied="{{ application.created_at|date:'F d, Y' }}"
-                                                    data-cover-letter="{{ application.cover_letter }}"
-                                                    data-cv-url="{{ application.cv.url }}">
+                                            <button type="button" class="btn btn-sm btn-primary view-application" data-toggle="modal" data-target="#applicationModal"
+                                                data-name="{{ application.name }}"
+                                                data-email="{{ application.email }}"
+                                                data-website="{{ application.website|default:'' }}"
+                                                data-status="{{ application.status }}"
+                                                data-applied="{{ application.created_at|date:'F d, Y' }}"
+                                                data-cover-letter="{{ application.cover_letter }}"
+                                                data-cv-url="{{ application.cv.url }}">
                                                 View Application
                                             </button>
+                                            <button type="button" class="btn btn-sm btn-success ml-2 set-interview-btn" data-toggle="modal" data-target="#setInterviewModal" data-application-id="{{ application.id }}" data-applicant-name="{{ application.name }}">Set Interview</button>
                                         </div>
                                     </div>
                                 {% endfor %}
@@ -431,6 +429,45 @@
         </div>
     </div>
 </div>
+
+<!-- Set Interview Modal -->
+<div class="modal fade" id="setInterviewModal" tabindex="-1" role="dialog" aria-labelledby="setInterviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="setInterviewModalLabel">Set Interview Appointment for <span id="modalApplicantName"></span></h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <form id="setInterviewForm">
+        <div class="modal-body">
+          <input type="hidden" name="application_id" id="modalApplicationId">
+          <div class="form-group">
+            <label for="interviewDate">Date</label>
+            <input type="date" class="form-control" id="interviewDate" name="date" required>
+          </div>
+          <div class="form-group">
+            <label for="interviewTime">Time</label>
+            <input type="time" class="form-control" id="interviewTime" name="time" required>
+          </div>
+          <div class="form-group">
+            <label for="interviewLocation">Location</label>
+            <input type="text" class="form-control" id="interviewLocation" name="location" required>
+          </div>
+          <div class="form-group">
+            <label for="interviewNotes">Notes</label>
+            <textarea class="form-control" id="interviewNotes" name="notes" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-success">Set Appointment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block footer %}
@@ -459,6 +496,46 @@ $(document).ready(function() {
         $('#modalCoverLetter').text(button.data('cover-letter'));
         $('#modalCV').attr('href', button.data('cv-url'));
         $('#applicationModal').modal('show');
+    });
+});
+
+// Fill modal with application info
+$(document).on('click', '.set-interview-btn', function() {
+    var applicationId = $(this).data('application-id');
+    var applicantName = $(this).data('applicant-name');
+    $('#modalApplicationId').val(applicationId);
+    $('#modalApplicantName').text(applicantName);
+});
+
+// Use meta tag for CSRF token
+var csrftoken = $('meta[name="csrf-token"]').attr('content');
+
+// AJAX form submission
+$('#setInterviewForm').on('submit', function(e) {
+    e.preventDefault();
+    var applicationId = $('#modalApplicationId').val();
+    var formData = $(this).serialize();
+    $.ajax({
+        url: '/jobs/set-interview/' + applicationId + '/',
+        type: 'POST',
+        data: formData,
+        headers: { 'X-CSRFToken': csrftoken },
+        success: function(response) {
+            $('#setInterviewModal').modal('hide');
+            alert('Interview appointment set successfully!');
+            location.reload();
+        },
+        error: function(xhr) {
+            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                let errorMsg = 'Error setting interview appointment:\n';
+                for (let field in xhr.responseJSON.errors) {
+                    errorMsg += field + ': ' + xhr.responseJSON.errors[field].join(', ') + '\n';
+                }
+                alert(errorMsg);
+            } else {
+                alert('Error setting interview appointment.');
+            }
+        }
     });
 });
 </script>

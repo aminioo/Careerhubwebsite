@@ -5,14 +5,14 @@
 /* Tablet desktop :768px. */
 /* small mobile :320px. */
 /* Large Mobile :480px. */
-/* line 6, ../../Arafath/CL/December/235. Job board/HTML/scss/theme-default.scss */
+/* line 6, ../../Arafath/CL/December/235. CareerHub/HTML/scss/theme-default.scss */
 body {
   font-family: "Roboto", sans-serif;
   font-weight: normal;
   font-style: normal;
 }
 
-/* line 13, ../../Arafath/CL/December/235. Job board/HTML/scss/theme-default.scss */
+/* line 13, ../../Arafath/CL/December/235. CareerHub/HTML/scss/theme-default.scss */
 .img {
   max-width: 100%;
   -webkit-transition: 0.3s;

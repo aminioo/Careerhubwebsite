@@ -107,3 +107,19 @@ class SavedJob(models.Model):
 
     def __str__(self):
         return f"{self.user.username} saved {self.job.title}"
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}: {self.message[:20]}"
+
+class Interview(models.Model):
+    application = models.ForeignKey('Apply', on_delete=models.CASCADE)
+    date = models.DateField()
+    time = models.TimeField()
+    location = models.CharField(max_length=255)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
