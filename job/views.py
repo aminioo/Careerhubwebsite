@@ -17,7 +17,7 @@ from .models import Interview, Notification
 
 def job_list(request):
     # Order jobs by is_featured (True first) and then by published_at (newest first)
-    job_list = Job.objects.all().order_by('-is_featured', '-published_at')
+    job_list = Job.objects.filter(is_active=True).order_by('-is_featured', '-published_at')
 
     ## filters
     myfilter = JobFilter(request.GET,queryset=job_list)
